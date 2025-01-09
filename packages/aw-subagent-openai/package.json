@@ -1,6 +1,6 @@
 {
   "name": "@lit-protocol/aw-subagent-openai",
-  "version": "0.1.0-7",
+  "version": "0.1.0-8",
   "publishConfig": {
     "access": "public"
   },
