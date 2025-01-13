@@ -29,6 +29,9 @@
     },
     {
       "path": "./packages/aw-cli"
+    },
+    {
+      "path": "./packages/aw-tool-sign-eddsa"
     }
   ]
 }

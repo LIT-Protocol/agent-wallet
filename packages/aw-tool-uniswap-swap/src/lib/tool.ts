@@ -119,6 +119,7 @@ const createNetworkTool = (
   name: 'UniswapSwap',
   description: `A Lit Action that swaps tokens on Uniswap.`,
   ipfsCid: IPFS_CIDS[network],
+  chain: 'ethereum',
   parameters: {
     type: {} as UniswapSwapLitActionParameters,
     schema: UniswapSwapLitActionSchema,

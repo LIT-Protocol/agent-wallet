@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../aw-tool-sign-eddsa"
+    },
+    {
       "path": "../aw-tool-sign-ecdsa"
     },
     {

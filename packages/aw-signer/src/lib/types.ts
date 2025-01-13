@@ -1,6 +1,7 @@
 import { LIT_NETWORK } from '@lit-protocol/constants';
 import { type AwTool } from '@lit-protocol/aw-tool';
 import type { ethers } from 'ethers';
+import { StoredKeyData } from '@lit-protocol/wrapped-keys';
 
 /**
  * Represents the Lit network environment.
@@ -198,3 +199,7 @@ export type CredentialNames<T> = T extends {
 export type CredentialsFor<T> = {
   [K in CredentialNames<T>]: string;
 };
+
+export interface WrappedKeyInfo extends StoredKeyData {
+  // Additional fields if needed
+}

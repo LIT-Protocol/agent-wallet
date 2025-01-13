@@ -6,25 +6,18 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "emitDeclarationOnly": false,
-    "types": ["node"]
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "types": ["node"],
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "paths": {
+      "@lit-protocol/aw-tool": ["../aw-tool/src"]
+    }
   },
   "include": ["src/**/*.ts"],
   "references": [
-    {
-      "path": "../aw-tool-sign-eddsa/tsconfig.lib.json"
-    },
-    {
-      "path": "../aw-tool-sign-ecdsa/tsconfig.lib.json"
-    },
-    {
-      "path": "../aw-tool-uniswap-swap/tsconfig.lib.json"
-    },
-    {
-      "path": "../aw-tool-erc20-transfer/tsconfig.lib.json"
-    },
-    {
-      "path": "../aw-tool-registry/tsconfig.lib.json"
-    },
     {
       "path": "../aw-tool/tsconfig.lib.json"
     }

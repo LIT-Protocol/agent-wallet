@@ -26,6 +26,9 @@
       "path": "../agent-wallet/tsconfig.lib.json"
     },
     {
+      "path": "../aw-tool-sign-eddsa/tsconfig.lib.json"
+    },
+    {
       "path": "../aw-tool-sign-ecdsa/tsconfig.lib.json"
     },
     {

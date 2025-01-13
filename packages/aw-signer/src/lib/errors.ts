@@ -33,6 +33,9 @@ export enum AwSignerErrorType {
 
   /** Indicates a failure to retrieve an item from storage. */
   STORAGE_FAILED_TO_GET_ITEM = 'STORAGE_FAILED_TO_GET_ITEM',
+
+  /** Indicates that the wrapped key was not found in storage. */
+  ADMIN_WRAPPED_KEY_NOT_FOUND = 'ADMIN_WRAPPED_KEY_NOT_FOUND',
 }
 
 /**

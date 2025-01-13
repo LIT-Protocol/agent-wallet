@@ -2,8 +2,10 @@ import { LitNodeClientNodeJs } from '@lit-protocol/lit-node-client-nodejs';
 import {
   AUTH_METHOD_SCOPE,
   AUTH_METHOD_SCOPE_VALUES,
+  LIT_ABILITY,
 } from '@lit-protocol/constants';
 import { LitContracts } from '@lit-protocol/contracts-sdk';
+import { EthWalletProvider } from "@lit-protocol/lit-auth-client";
 import { ethers } from 'ethers';
 
 import {
@@ -11,6 +13,7 @@ import {
   AgentConfig,
   LitNetwork,
   UnknownRegisteredToolWithPolicy,
+  WrappedKeyInfo,
 } from './types';
 import {
   DEFAULT_REGISTRY_CONFIG,
@@ -20,6 +23,9 @@ import {
 } from './utils/pkp-tool-registry';
 import { LocalStorage } from './utils/storage';
 import { loadPkpsFromStorage, mintPkp, savePkpsToStorage } from './utils/pkp';
+import { mintWrappedKey, loadWrappedKeysFromStorage, loadWrappedKeyFromStorage, removeWrappedKeyFromStorage } from './utils/wrapped-key';
+import { LitPKPResource } from '@lit-protocol/auth-helpers';
+import { LitAccessControlConditionResource, LitActionResource } from '@lit-protocol/auth-helpers';
 import { AwSignerError, AwSignerErrorType } from './errors';
 import { AwTool } from '@lit-protocol/aw-tool';
 
@@ -33,7 +39,7 @@ export class Admin {
   // private static readonly MIN_BALANCE = ethers.utils.parseEther('0.001');
 
   private readonly storage: LocalStorage;
-  private readonly litNodeClient: LitNodeClientNodeJs;
+  private readonly litNodeClient: any;
   private readonly litContracts: LitContracts;
   private readonly toolPolicyRegistryContract: ethers.Contract;
   private readonly adminWallet: ethers.Wallet;
@@ -51,7 +57,7 @@ export class Admin {
   private constructor(
     storage: LocalStorage,
     litNetwork: LitNetwork,
-    litNodeClient: LitNodeClientNodeJs,
+    litNodeClient: any,
     litContracts: LitContracts,
     toolPolicyRegistryContract: ethers.Contract,
     adminWallet: ethers.Wallet
@@ -138,7 +144,7 @@ export class Admin {
     const litNodeClient = new LitNodeClientNodeJs({
       litNetwork,
       debug,
-    });
+    }) as any;
     await litNodeClient.connect();
 
     const litContracts = new LitContracts({
@@ -182,6 +188,78 @@ export class Admin {
     savePkpsToStorage(this.storage, pkps);
 
     return mintMetadata;
+  }
+
+  /**
+   * Gets all wrapped keys from storage.
+   * @returns A promise that resolves to an array of wrapped keys.
+   */
+  public async getWrappedKeys(): Promise<WrappedKeyInfo[]> {
+    return loadWrappedKeysFromStorage(this.storage);
+  }
+
+  /**
+   * Gets a wrapped key by its ID.
+   * @param id - The ID of the wrapped key.
+   * @returns A promise that resolves to the wrapped key.
+   * @throws If the wrapped key is not found.
+   */
+  public async getWrappedKeyById(id: string): Promise<WrappedKeyInfo> {
+    const wrappedKey = loadWrappedKeyFromStorage(this.storage, id);
+    if (!wrappedKey) {
+      throw new AwSignerError(
+        AwSignerErrorType.ADMIN_WRAPPED_KEY_NOT_FOUND,
+        `Wrapped key with id ${id} not found in storage`
+      );
+    }
+    return wrappedKey;
+  }
+
+  /**
+   * Removes a wrapped key from storage.
+   * @param id - The ID of the wrapped key to remove.
+   * @returns A promise that resolves to the removed wrapped key.
+   * @throws If the wrapped key is not found.
+   */
+  public async removeWrappedKey(id: string): Promise<WrappedKeyInfo> {
+    const wrappedKey = await this.getWrappedKeyById(id);
+    removeWrappedKeyFromStorage(this.storage, id);
+    return wrappedKey;
+  }
+
+  /**
+   * Mints a new wrapped key for a PKP.
+   * @param pkpTokenId - The token ID of the PKP.
+   * @returns A promise that resolves to the minted wrapped key.
+   */
+  public async mintWrappedKey(pkpTokenId: string): Promise<WrappedKeyInfo> {
+    const pkp = await this.getPkpByTokenId(pkpTokenId);
+    const authMethod = await EthWalletProvider.authenticate({
+      signer: this.adminWallet,
+      litNodeClient: this.litNodeClient,
+    });
+    const pkpSessionSigs = await this.litNodeClient.getPkpSessionSigs({
+      pkpPublicKey: pkp.info.publicKey,
+      chain: "ethereum",
+      authMethods: [authMethod],
+      expiration: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
+      resourceAbilityRequests: [
+        {
+          resource: new LitActionResource("*"),
+          ability: LIT_ABILITY.LitActionExecution,
+        },
+        {
+          resource: new LitPKPResource("*"),
+          ability: LIT_ABILITY.PKPSigning,
+        },
+        { resource: new LitAccessControlConditionResource("*"),
+          ability: LIT_ABILITY.AccessControlConditionDecryption,
+        }
+      ],
+    });
+    console.log("Session sigs: ", pkpSessionSigs);
+
+    return mintWrappedKey(this.litNodeClient, pkpSessionSigs, this.storage, pkpTokenId);
   }
 
   /**

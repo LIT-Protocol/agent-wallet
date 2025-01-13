@@ -120,6 +120,7 @@ const createNetworkTool = (
   name: 'ERC20Transfer',
   description: `A Lit Action that sends ERC-20 tokens.`,
   ipfsCid: IPFS_CIDS[network],
+  chain: 'ethereum',
   parameters: {
     type: {} as ERC20TransferLitActionParameters,
     schema: ERC20TransferLitActionSchema,
