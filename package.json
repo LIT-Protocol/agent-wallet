@@ -7,7 +7,7 @@
     "clean": "node tools/clean.js",
     "lint": "npx nx run-many -t lint",
     "test": "npx nx run-many -t test -- --passWithNoTests",
-    "deploy:tools": "npx nx deploy aw-tool-uniswap-swap && npx nx deploy aw-tool-sign-ecdsa && npx nx deploy aw-tool-erc20-transfer",
+    "deploy:tools": "npx nx deploy aw-tool-uniswap-swap && npx nx deploy aw-tool-sign-ecdsa && npx nx deploy aw-tool-erc20-transfer && npx nx deploy aw-tool-sign-eddsa",
     "start:cli": "pnpm build && pnpm deploy:tools && NO_DEPRECATION=* node packages/aw-cli/dist/src/index.js",
     "start:cli:no-build": "NO_DEPRECATION=* node packages/aw-cli/dist/src/index.js"
   },
@@ -22,12 +22,19 @@
     "@swc/helpers": "~0.5.11",
     "@types/jest": "^29.5.12",
     "@types/node": "18.16.9",
+    "browserify-fs": "^1.0.0",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^9.0.0",
+    "http-browserify": "^1.7.0",
+    "https-browserify": "^1.0.0",
     "jest": "^29.7.0",
     "jest-environment-node": "^29.7.0",
     "nx": "20.3.0",
+    "path-browserify": "^1.0.1",
     "prettier": "^2.6.2",
+    "stream-browserify": "^3.0.0",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",
@@ -47,6 +54,5 @@
         }
       }
     }
-  },
-  "dependencies": {}
+  }
 }

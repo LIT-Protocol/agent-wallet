@@ -10,10 +10,8 @@ import { getEncryptedKey, storeEncryptedKey } from '@lit-protocol/wrapped-keys/s
 
 export function loadWrappedKeyFromStorage(storage: LocalStorage, id: string): StoredKeyData | null {
   try {
-    const wk = storage.getItem(`wk:${id}`);
-    if (wk) {
-      return JSON.parse(wk) as StoredKeyData;
-    }
+    const wrappedKeys = loadWrappedKeysFromStorage(storage);
+    return wrappedKeys.find(wk => wk.id === id) || null;
   } catch (error) {
     throw new AwSignerError(
       AwSignerErrorType.STORAGE_FAILED_TO_GET_ITEM,
@@ -23,38 +21,38 @@ export function loadWrappedKeyFromStorage(storage: LocalStorage, id: string): St
       }
     );
   }
-  return null;
 }
 
 export function saveWrappedKeyToStorage(storage: LocalStorage, wrappedKey: StoredKeyData) {
-  storage.setItem(`wk:${wrappedKey.id}`, JSON.stringify(wrappedKey));
+  const wrappedKeys = loadWrappedKeysFromStorage(storage);
+  const index = wrappedKeys.findIndex(wk => wk.id === wrappedKey.id);
   
-  // Update the index
-  const index = storage.getItem('wk:index');
-  const ids = index ? JSON.parse(index) as string[] : [];
-  if (!ids.includes(wrappedKey.id)) {
-    ids.push(wrappedKey.id);
-    storage.setItem('wk:index', JSON.stringify(ids));
+  if (index === -1) {
+    wrappedKeys.push(wrappedKey);
+  } else {
+    wrappedKeys[index] = wrappedKey;
   }
+  
+  storage.setItem('wks', JSON.stringify(wrappedKeys));
 }
 
 export function loadWrappedKeysFromStorage(storage: LocalStorage): StoredKeyData[] {
-  const index = storage.getItem('wk:index');
-  if (!index) {
+  const wks = storage.getItem('wks');
+  if (!wks) {
     return [];
   }
-
-  const ids = JSON.parse(index) as string[];
-  const wrappedKeys: StoredKeyData[] = [];
   
-  for (const id of ids) {
-    const wk = loadWrappedKeyFromStorage(storage, id);
-    if (wk) {
-      wrappedKeys.push(wk);
-    }
+  try {
+    return JSON.parse(wks) as StoredKeyData[];
+  } catch (error) {
+    throw new AwSignerError(
+      AwSignerErrorType.STORAGE_FAILED_TO_GET_ITEM,
+      'Failed to parse wrapped keys from storage',
+      {
+        details: error,
+      }
+    );
   }
-  
-  return wrappedKeys;
 }
 
 export async function mintWrappedKey(
@@ -75,14 +73,14 @@ export async function mintWrappedKey(
 
   const accessControlConditions: AccessControlConditions = [
     {
-      contractAddress: "",
-      standardContractType: "",
-      chain: "ethereum",
-      method: "",
-      parameters: [":userAddress"],
+      contractAddress: '',
+      standardContractType: '',
+      chain: 'ethereum',
+      method: '',
+      parameters: [':currentActionIpfsId'],
       returnValueTest: {
-        comparator: "=",
-        value: pkpAddress,
+        comparator: '=',
+        value: 'QmYf6Bm29HXbTNLCi4ELTidJ1UYdj4Nk8cpm1xfeRLqDqc',
       },
     },
   ];
@@ -103,8 +101,6 @@ export async function mintWrappedKey(
     memo: "FSS Signer Wrapped Key",
     publicKey: solanaKeypair.publicKey.toString(),
   });
-
-  console.log(`✅ Decrypted private key: ${solanaKeypair.secretKey}`);
 
   const getEncryptedKeyResponse = await getEncryptedKey({
     pkpSessionSigs,
@@ -136,14 +132,7 @@ function getPkpAddressFromSessionSigs(pkpSessionSigs: SessionSigsMap) {
 }
 
 export function removeWrappedKeyFromStorage(storage: LocalStorage, id: string) {
-  // Remove the wrapped key
-  storage.removeItem(`wk:${id}`);
-  
-  // Update the index
-  const index = storage.getItem('wk:index');
-  if (index) {
-    const ids = JSON.parse(index) as string[];
-    const newIds = ids.filter(wkId => wkId !== id);
-    storage.setItem('wk:index', JSON.stringify(newIds));
-  }
+  const wrappedKeys = loadWrappedKeysFromStorage(storage);
+  const newWrappedKeys = wrappedKeys.filter(wk => wk.id !== id);
+  storage.setItem('wks', JSON.stringify(newWrappedKeys));
 }

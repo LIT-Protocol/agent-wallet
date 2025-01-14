@@ -11,6 +11,7 @@ import {
   promptSelectPkp,
   promptSelectTool,
   promptToolParams,
+  promptSelectWrappedKey,
 } from '../../prompts/delegatee';
 
 // Import custom error types and utilities.
@@ -92,6 +93,36 @@ export const handleExecuteTool = async (awDelegatee: AwDelegatee) => {
     // Prompt the user to provide tool parameters.
     logger.info('Enter Tool Parameters:');
     const params = await promptToolParams(selectedTool, selectedPkp.ethAddress);
+
+    // If this is a Solana tool, prompt for wrapped key selection
+    if (selectedTool.chain === 'solana') {
+      // Get all wrapped keys and filter by the selected PKP's address
+      const wrappedKeys = await awDelegatee.getWrappedKeys();
+      const pkpWrappedKeys = wrappedKeys.filter(key => key.pkpAddress === selectedPkp.ethAddress);
+      
+      if (pkpWrappedKeys.length === 0) {
+        logger.error('No wrapped keys found for this PKP. Please ask an admin to mint a wrapped key first.');
+        return;
+      }
+
+      const wrappedKey = await promptSelectWrappedKey(awDelegatee, pkpWrappedKeys);
+      params.wrappedKeyId = wrappedKey.id;
+      params.ciphertext = wrappedKey.ciphertext;
+      params.dataToEncryptHash = wrappedKey.dataToEncryptHash;
+      params.accessControlConditions = [
+        {
+          contractAddress: '',
+          standardContractType: '',
+          chain: 'ethereum',
+          method: '',
+          parameters: [':currentActionIpfsId'],
+          returnValueTest: {
+            comparator: '=',
+            value: 'QmYf6Bm29HXbTNLCi4ELTidJ1UYdj4Nk8cpm1xfeRLqDqc',
+          },
+        },
+      ];
+    }
 
     // Execute the tool.
     logger.loading('Executing tool...');

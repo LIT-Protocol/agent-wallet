@@ -99,7 +99,7 @@ export class Admin {
    */
   public static async create(
     adminConfig: AdminConfig,
-    { litNetwork, debug = false }: AgentConfig = {}
+    { litNetwork, debug = true }: AgentConfig = {}
   ) {
     if (!litNetwork) {
       throw new AwSignerError(
@@ -252,12 +252,12 @@ export class Admin {
           resource: new LitPKPResource("*"),
           ability: LIT_ABILITY.PKPSigning,
         },
-        { resource: new LitAccessControlConditionResource("*"),
+        { 
+          resource: new LitAccessControlConditionResource("*"),
           ability: LIT_ABILITY.AccessControlConditionDecryption,
         }
       ],
     });
-    console.log("Session sigs: ", pkpSessionSigs);
 
     return mintWrappedKey(this.litNodeClient, pkpSessionSigs, this.storage, pkpTokenId);
   }

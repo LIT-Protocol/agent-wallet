@@ -1,3 +1,7 @@
+import { Keypair } from "@solana/web3.js";
+import nacl from "tweetnacl";
+import { Buffer } from "buffer";
+
 declare global {
   // Injected By Lit
   const Lit: any;
@@ -20,13 +24,17 @@ declare global {
   };
 
   // Injected by build script
-  const LIT_NETWORK: string;
+  const LIT_NETWORK: 'datil-dev' | 'datil-test' | 'datil';
   const PKP_TOOL_REGISTRY_ADDRESS: string;
 
   // Required Inputs
   const params: {
     pkpEthAddress: string;
     message: string;
+    wrappedKeyId: string;
+    ciphertext: string;
+    dataToEncryptHash: string;
+    accessControlConditions: any[];
   };
 }
 
@@ -35,7 +43,7 @@ declare global {
  * This function handles the entire process, including PKP info retrieval, policy validation,
  * and message signing.
  */
-export default async () => {
+(async () => {
   try {
     /**
      * Retrieves PKP (Programmable Key Pair) information, including the token ID, Ethereum address, and public key.
@@ -164,27 +172,6 @@ export default async () => {
       console.log(`Inputs validated against policy`);
     }
 
-    /**
-     * Signs the message using the PKP's public key.
-     * @param message - The message to sign.
-     * @returns The signature of the message.
-     */
-    async function signMessage(message: string) {
-      const pkForLit = pkp.publicKey.startsWith('0x')
-        ? pkp.publicKey.slice(2)
-        : pkp.publicKey;
-
-      const sig = await Lit.Actions.signEcdsa({
-        toSign: ethers.utils.arrayify(
-          ethers.utils.keccak256(ethers.utils.toUtf8Bytes(message))
-        ),
-        publicKey: pkForLit,
-        sigName: 'sig',
-      });
-
-      return sig;
-    }
-
     // Main Execution
     // Network to PubkeyRouter address mapping
     const NETWORK_CONFIG = {
@@ -195,27 +182,24 @@ export default async () => {
         pubkeyRouterAddress: '0x65C3d057aef28175AfaC61a74cc6b27E88405583',
       },
       datil: {
-        pubkeyRouterAddress: '0xF182d6bEf16Ba77e69372dD096D8B70Bc3d5B475',
+        pubkeyRouterAddress: '0x65C3d057aef28175AfaC61a74cc6b27E88405583',
       },
-    } as const;
+    };
 
     console.log(`Using Lit Network: ${LIT_NETWORK}`);
-    console.log(
-      `Using PKP Tool Registry Address: ${PKP_TOOL_REGISTRY_ADDRESS}`
-    );
-    console.log(
-      `Using Pubkey Router Address: ${
-        NETWORK_CONFIG[LIT_NETWORK as keyof typeof NETWORK_CONFIG]
-          .pubkeyRouterAddress
-      }`
-    );
+    console.log(`Using PKP Tool Registry Address: ${PKP_TOOL_REGISTRY_ADDRESS}`);
+    console.log(`Using Pubkey Router Address: ${NETWORK_CONFIG[LIT_NETWORK as keyof typeof NETWORK_CONFIG].pubkeyRouterAddress}`);
 
+    // Get PKP info
     const pkp = await getPkpInfo();
 
+    // Create PKP Tool Registry contract instance
     const PKP_TOOL_REGISTRY_ABI = [
       'function isDelegateeOf(uint256 pkpTokenId, address delegatee) external view returns (bool)',
       'function getToolPolicy(uint256 pkpTokenId, string calldata ipfsCid) external view returns (bytes memory policy, string memory version)',
+      'function getRegisteredTools(uint256 pkpTokenId) external view returns (string[] memory ipfsCids, bytes[] memory policies, string[] memory versions)',
     ];
+
     const pkpToolRegistryContract = new ethers.Contract(
       PKP_TOOL_REGISTRY_ADDRESS,
       PKP_TOOL_REGISTRY_ABI,
@@ -226,10 +210,43 @@ export default async () => {
       )
     );
 
+    // Check if Lit Auth address is a delegatee
     await checkLitAuthAddressIsDelegatee(pkpToolRegistryContract);
+
+    // Validate inputs against policy
     await validateInputsAgainstPolicy(pkpToolRegistryContract);
 
-    await signMessage(params.message);
+    // Debug - Call getRegisteredTools
+    console.log('Debug - Calling getRegisteredTools:');
+    const [ipfsCids, policies, versions] = await pkpToolRegistryContract.getRegisteredTools(pkp.tokenId);
+    console.log('Registered Tools:', {
+      ipfsCids,
+      policies,
+      versions
+    });
+
+    // Decrypt the wrapped key
+    console.log('Attempting to decrypt wrapped key...');
+
+    const secretKey = await Lit.Actions.decryptAndCombine({
+      accessControlConditions: params.accessControlConditions,
+      ciphertext: params.ciphertext,
+      dataToEncryptHash: params.dataToEncryptHash,
+      authSig: null,
+      chain: "ethereum",
+    });
+    console.log('Decrypted secret key:', secretKey);
+
+    const solanaKeyPair = Keypair.fromSecretKey(
+      Buffer.from(secretKey, "base64")
+    );
+
+    const signature = nacl.sign.detached(
+      new TextEncoder().encode(params.message),
+      solanaKeyPair.secretKey
+    );
+
+    console.log("Solana Signature:", signature);
 
     // Return the signature
     Lit.Actions.setResponse({
@@ -247,4 +264,4 @@ export default async () => {
       }),
     });
   }
-};
+})();

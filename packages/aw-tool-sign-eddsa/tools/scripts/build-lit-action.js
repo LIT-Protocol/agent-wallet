@@ -1,81 +1,37 @@
 const esbuild = require('esbuild');
-const fs = require('fs');
 const path = require('path');
 const networks = require('../config/networks');
 
-async function buildAction(network, config) {
-  console.log(`Building Lit Action for network: ${network}`);
+async function buildAction(network) {
+  const entryPoint = path.resolve(__dirname, '../../src/lib/lit-action.ts');
+  const outfile = path.resolve(__dirname, '../../dist', `deployed-lit-action-${network}.js`);
+  const config = networks[network];
 
   try {
-    // Build the action file
-    const result = await esbuild.build({
-      entryPoints: [path.join(__dirname, '../../src/lib/lit-action.ts')],
+    await esbuild.build({
+      entryPoints: [entryPoint],
       bundle: true,
-      write: false,
-      format: 'esm',
-      target: 'esnext',
-      platform: 'neutral',
-      minify: false,
+      minify: true,
+      format: 'iife',
+      globalName: 'LitAction',
+      outfile,
       define: {
-        'process.env.NODE_ENV': '"production"',
-        PUBKEY_ROUTER_ADDRESS: `"${config.pubkeyRouterAddress}"`,
-        PKP_TOOL_REGISTRY_ADDRESS: `"${config.pkpToolRegistryAddress}"`,
-        LIT_NETWORK: `"${config.litNetwork}"`,
+        'process.env.NETWORK': `"${network}"`,
+        'LIT_NETWORK': `"${network}"`,
+        'PKP_TOOL_REGISTRY_ADDRESS': `"${config.pkpToolRegistryAddress}"`,
       },
+      target: ['es2020'],
     });
-
-    const actionCode = result.outputFiles[0].text;
-
-    // Extract the function body
-    const startMatch = actionCode.indexOf('var lit_action_default = ');
-    const endMatch = actionCode.indexOf('export {');
-
-    if (startMatch === -1 || endMatch === -1) {
-      console.error('Compiled code:', actionCode);
-      throw new Error('Could not find function boundaries in compiled code');
-    }
-
-    // Extract the function definition (excluding the variable assignment)
-    const functionBody = actionCode
-      .slice(startMatch + 'var lit_action_default = '.length, endMatch)
-      .trim()
-      .replace(/;$/, ''); // Remove trailing semicolon if present
-
-    // Create self-executing function
-    const finalCode = `(${functionBody})();`;
-
-    // Write to output file
-    const outputPath = path.join(__dirname, '../../dist', config.outputFile);
-    fs.writeFileSync(outputPath, finalCode, 'utf8');
-
-    console.log(`Successfully built ${config.outputFile}`);
-    return config.outputFile; // Return just the filename instead of full path
+    console.log(`Successfully built Lit Action for network: ${network}`);
   } catch (error) {
-    console.error(`Error building lit-action for ${network}:`, error);
-    throw error;
-  }
-}
-
-async function main() {
-  try {
-    // Ensure dist directory exists
-    const distDir = path.join(__dirname, '../../dist');
-    if (!fs.existsSync(distDir)) {
-      fs.mkdirSync(distDir, { recursive: true });
-    }
-
-    // Build for each network
-    await Promise.all(
-      Object.entries(networks).map(async ([network, config]) => {
-        await buildAction(network, config);
-      })
-    );
-
-    console.log('Successfully built all Lit Actions');
-  } catch (error) {
-    console.error('Error in build process:', error);
+    console.error('Error building Lit Action:', error);
     process.exit(1);
   }
 }
 
-main();
+// Build for each network
+Promise.all([
+  buildAction('datil-dev'),
+  buildAction('datil-test'),
+  buildAction('datil'),
+]).catch(() => process.exit(1));
