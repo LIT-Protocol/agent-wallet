@@ -59,7 +59,6 @@ export async function mintWrappedKey(
     litNodeClient: LitNodeClientNodeJs,
     pkpSessionSigs: SessionSigsMap,
     storage: LocalStorage,
-    pkpTokenId: string
   ): Promise<StoredKeyData> {
 
   const solanaKeypair = Keypair.generate();
@@ -98,7 +97,7 @@ export async function mintWrappedKey(
     ciphertext,
     dataToEncryptHash,
     keyType: "ed25519",
-    memo: "FSS Signer Wrapped Key",
+    memo: "Agent Wallet Wrapped Key",
     publicKey: solanaKeypair.publicKey.toString(),
   });
 
