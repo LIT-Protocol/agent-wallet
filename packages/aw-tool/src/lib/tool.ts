@@ -74,6 +74,7 @@ export interface AwTool<
   name: string; // The name of the tool
   description: string; // A description of the tool's functionality
   ipfsCid: string; // The IPFS CID for the tool's Lit Action
+  chain: string; // The chain the tool is deployed on NOTE: currently only 'ethereum' and 'solana' will be supported
 
   // Parameter handling
   parameters: {

@@ -4,6 +4,7 @@ import { LitNodeClientNodeJs } from '@lit-protocol/lit-node-client-nodejs';
 import {
   createSiweMessage,
   generateAuthSig,
+  LitAccessControlConditionResource,
   LitActionResource,
   LitPKPResource,
 } from '@lit-protocol/auth-helpers';
@@ -40,6 +41,7 @@ import {
   getRegisteredTools,
   getToolPolicy,
 } from './utils/pkp-tool-registry';
+import { loadWrappedKeysFromStorage, loadWrappedKeyFromStorage } from './utils/wrapped-key';
 
 /**
  * The `Delegatee` class is responsible for managing the Delegatee role in the Lit Protocol.
@@ -48,8 +50,10 @@ import {
 export class Delegatee implements CredentialStore {
   private static readonly DEFAULT_STORAGE_PATH =
     './.aw-signer-delegatee-storage';
+  private static readonly ADMIN_STORAGE_PATH = './.aw-signer-admin-storage';
 
   private readonly storage: LocalStorage;
+  private readonly adminStorage: LocalStorage;
   private readonly litNodeClient: LitNodeClientNodeJs;
   private readonly litContracts: LitContracts;
   private readonly toolPolicyRegistryContract: ethers.Contract;
@@ -61,6 +65,7 @@ export class Delegatee implements CredentialStore {
    * Private constructor for the Delegatee class.
    * @param litNetwork - The Lit network to use.
    * @param storage - An instance of `LocalStorage` for storing delegatee information.
+   * @param adminStorage - An instance of `LocalStorage` for storing shared information.
    * @param litNodeClient - An instance of `LitNodeClientNodeJs`.
    * @param litContracts - An instance of `LitContracts`.
    * @param toolPolicyRegistryContract - An instance of the tool policy registry contract.
@@ -69,6 +74,7 @@ export class Delegatee implements CredentialStore {
   private constructor(
     litNetwork: LitNetwork,
     storage: LocalStorage,
+    adminStorage: LocalStorage,
     litNodeClient: LitNodeClientNodeJs,
     litContracts: LitContracts,
     toolPolicyRegistryContract: ethers.Contract,
@@ -76,6 +82,7 @@ export class Delegatee implements CredentialStore {
   ) {
     this.litNetwork = litNetwork;
     this.storage = storage;
+    this.adminStorage = adminStorage;
     this.litNodeClient = litNodeClient;
     this.litContracts = litContracts;
     this.toolPolicyRegistryContract = toolPolicyRegistryContract;
@@ -126,7 +133,7 @@ export class Delegatee implements CredentialStore {
    */
   public static async create(
     delegateePrivateKey?: string,
-    { litNetwork, debug = false }: AgentConfig = {}
+    { litNetwork, debug = true }: AgentConfig = {}
   ) {
     if (!litNetwork) {
       throw new AwSignerError(
@@ -136,6 +143,7 @@ export class Delegatee implements CredentialStore {
     }
 
     const storage = new LocalStorage(Delegatee.DEFAULT_STORAGE_PATH);
+    const adminStorage = new LocalStorage(Delegatee.ADMIN_STORAGE_PATH);
 
     const toolPolicyRegistryConfig = DEFAULT_REGISTRY_CONFIG[litNetwork];
 
@@ -179,6 +187,7 @@ export class Delegatee implements CredentialStore {
     return new Delegatee(
       litNetwork,
       storage,
+      adminStorage,
       litNodeClient,
       litContracts,
       getPkpToolPolicyRegistryContract(
@@ -307,7 +316,7 @@ export class Delegatee implements CredentialStore {
   }
 
   public async executeTool(
-    params: Omit<JsonExecutionSdkParams, 'sessionSigs'>
+    params: Omit<JsonExecutionSdkParams, 'sessionSigs'> & { wrappedKeyId?: string }
   ): Promise<ExecuteJsResponse> {
     if (!this.litNodeClient || !this.litContracts || !this.delegateeWallet) {
       throw new Error('Delegatee not properly initialized');
@@ -330,6 +339,17 @@ export class Delegatee implements CredentialStore {
       ).capacityDelegationAuthSig;
     }
 
+    // If wrappedKeyId is provided, get the wrapped key and add it to the params
+    let wrappedKey;
+    if (params.wrappedKeyId) {
+      wrappedKey = await this.getWrappedKeyById(params.wrappedKeyId);
+      // Add the wrapped key to the jsParams
+      params.jsParams = {
+        ...params.jsParams,
+        wrappedKey,
+      };
+    }
+
     const sessionSignatures = await this.litNodeClient.getSessionSigs({
       chain: 'ethereum',
       expiration: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
@@ -345,6 +365,10 @@ export class Delegatee implements CredentialStore {
         {
           resource: new LitPKPResource('*'),
           ability: LIT_ABILITY.PKPSigning,
+        },
+        {
+          resource: new LitAccessControlConditionResource('*'),
+          ability: LIT_ABILITY.AccessControlConditionDecryption,
         },
       ],
       authNeededCallback: async ({
@@ -421,5 +445,20 @@ export class Delegatee implements CredentialStore {
 
   public disconnect() {
     this.litNodeClient.disconnect();
+  }
+
+  public async getWrappedKeys() {
+    return loadWrappedKeysFromStorage(this.adminStorage);
+  }
+
+  public async getWrappedKeyById(id: string) {
+    const wrappedKey = loadWrappedKeyFromStorage(this.adminStorage, id);
+    if (!wrappedKey) {
+      throw new AwSignerError(
+        AwSignerErrorType.ADMIN_WRAPPED_KEY_NOT_FOUND,
+        `Wrapped key with id ${id} not found in storage`
+      );
+    }
+    return wrappedKey;
   }
 }

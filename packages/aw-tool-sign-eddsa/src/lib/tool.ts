@@ -6,24 +6,24 @@ import {
   NetworkConfig,
 } from '@lit-protocol/aw-tool';
 
-import { SignEcdsaPolicy, type SignEcdsaPolicyType } from './policy';
+import { SignEddsaPolicy, type SignEddsaPolicyType } from './policy';
 import { IPFS_CIDS } from './ipfs';
 
 /**
- * Parameters required for the Signing ECDSA Lit Action.
+ * Parameters required for the Signing EDDSA Lit Action.
  * @property {string} pkpEthAddress - The Ethereum address of the PKP.
  * @property message - The message to sign.
  */
-export interface SignEcdsaLitActionParameters {
+export interface SignEddsaLitActionParameters {
   pkpEthAddress: string;
   message: string;
 }
 
 /**
- * Zod schema for validating `SignEcdsaLitActionParameters`.
+ * Zod schema for validating `SignEddsaLitActionParameters`.
  * Ensures that the message is a valid string.
  */
-const SignEcdsaLitActionSchema = z.object({
+const SignEddsaLitActionSchema = z.object({
   pkpEthAddress: z
     .string()
     .regex(
@@ -34,24 +34,24 @@ const SignEcdsaLitActionSchema = z.object({
 });
 
 /**
- * Descriptions of each parameter for the Signing ECDSA Lit Action.
+ * Descriptions of each parameter for the Signing EDDSA Lit Action.
  * These descriptions are designed to be consumed by LLMs (Language Learning Models) to understand the required parameters.
  */
-const SignEcdsaLitActionParameterDescriptions = {
+const SignEddsaLitActionParameterDescriptions = {
   pkpEthAddress:
     'The Ethereum address of the PKP that will be used to sign the message.',
   message: 'The message you want to sign.',
 } as const;
 
 /**
- * Validates the parameters for the Signing ECDSA Lit Action.
+ * Validates the parameters for the Signing EDDSA Lit Action.
  * @param params - The parameters to validate.
  * @returns `true` if the parameters are valid, or an array of errors if invalid.
  */
-const validateSignEcdsaParameters = (
+const validateSignEddsaParameters = (
   params: unknown
 ): true | Array<{ param: string; error: string }> => {
-  const result = SignEcdsaLitActionSchema.safeParse(params);
+  const result = SignEddsaLitActionSchema.safeParse(params);
   if (result.success) {
     return true;
   }
@@ -64,39 +64,39 @@ const validateSignEcdsaParameters = (
 };
 
 /**
- * Creates a network-specific SignEcdsa tool.
+ * Creates a network-specific SignEddsa tool.
  * @param network - The supported Lit network (e.g., `datil-dev`, `datil-test`, `datil`).
  * @param config - The network configuration.
- * @returns A configured `AwTool` instance for the Signing ECDSA Lit Action.
+ * @returns A configured `AwTool` instance for the Signing EDDSA Lit Action.
  */
 const createNetworkTool = (
   network: SupportedLitNetwork,
   config: NetworkConfig
-): AwTool<SignEcdsaLitActionParameters, SignEcdsaPolicyType> => ({
-  name: 'SignEcdsa',
+): AwTool<SignEddsaLitActionParameters, SignEddsaPolicyType> => ({
+  name: 'SignEddsa',
   description: `A Lit Action that signs a message with an allowlist of message prefixes.`,
   ipfsCid: IPFS_CIDS[network],
-  chain: 'ethereum',
+  chain: 'solana',
   parameters: {
-    type: {} as SignEcdsaLitActionParameters,
-    schema: SignEcdsaLitActionSchema,
-    descriptions: SignEcdsaLitActionParameterDescriptions,
-    validate: validateSignEcdsaParameters,
+    type: {} as SignEddsaLitActionParameters,
+    schema: SignEddsaLitActionSchema,
+    descriptions: SignEddsaLitActionParameterDescriptions,
+    validate: validateSignEddsaParameters,
   },
-  policy: SignEcdsaPolicy,
+  policy: SignEddsaPolicy,
 });
 
 /**
- * Exports network-specific SignEcdsa tools.
+ * Exports network-specific SignEddsa tools.
  * Each tool is configured for a specific Lit network (e.g., `datil-dev`, `datil-test`, `datil`).
  */
-export const SignEcdsa = Object.entries(NETWORK_CONFIGS).reduce(
+export const SignEddsa = Object.entries(NETWORK_CONFIGS).reduce(
   (acc, [network, config]) => ({
     ...acc,
     [network]: createNetworkTool(network as SupportedLitNetwork, config),
   }),
   {} as Record<
     SupportedLitNetwork,
-    AwTool<SignEcdsaLitActionParameters, SignEcdsaPolicyType>
+    AwTool<SignEddsaLitActionParameters, SignEddsaPolicyType>
   >
 );

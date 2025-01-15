@@ -6,3 +6,4 @@ export * from './select-tool';
 export * from './tool-params';
 export * from './tool-matching-intent';
 export * from './open-ai-api-key';
+export * from './select-wrapped-key';

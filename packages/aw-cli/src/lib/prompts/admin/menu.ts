@@ -4,7 +4,7 @@ import prompts from 'prompts';
 // Import the logger utility for logging messages.
 import { logger } from '../../utils/logger';
 
-type ManageChoice = 'tools' | 'policies' | 'delegatees' | 'transferOwnership';
+type ManageChoice = 'tools' | 'policies' | 'delegatees' | 'transferOwnership' | 'wrappedKeys';
 type Choice = { title: string; value: string };
 
 const categoryChoices: Record<
@@ -28,6 +28,11 @@ const categoryChoices: Record<
     { title: 'Remove Delegatee', value: 'removeDelegatee' },
     { title: 'Batch Add Delegatees', value: 'batchAddDelegatees' },
     { title: 'Batch Remove Delegatees', value: 'batchRemoveDelegatees' },
+  ],
+  wrappedKeys: [
+    { title: 'View Wrapped Keys', value: 'viewWrappedKeys' },
+    { title: 'Mint Wrapped Key', value: 'mintWrappedKey' },
+    { title: 'Remove Wrapped Key', value: 'removeWrappedKey' },
   ],
 };
 
@@ -70,6 +75,7 @@ export const promptAdminManagePkpMenu = async () => {
       { title: 'Tools', value: 'tools' },
       { title: 'Policies', value: 'policies' },
       { title: 'Delegatees', value: 'delegatees' },
+      { title: 'Wrapped Keys', value: 'wrappedKeys' },
       { title: 'Transfer Ownership', value: 'transferOwnership' },
     ],
   });

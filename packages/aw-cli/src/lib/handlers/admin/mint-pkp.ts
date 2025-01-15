@@ -7,10 +7,12 @@ import {
 import { promptAdminInsufficientBalance } from '../../prompts/admin/insufficient-balance';
 import { logger } from '../../utils/logger';
 import { promptManagePkp } from '../../prompts/admin/manage-pkp';
+import { handleMintWrappedKey } from './mint-wrapped-key';
 
 export async function handleMintPkp(awAdmin: AwAdmin) {
   try {
     const pkpInfo = await awAdmin.mintPkp();
+    await handleMintWrappedKey(awAdmin, pkpInfo);
     logger.success(`Minted Agent Wallet: ${pkpInfo.info.ethAddress}`);
 
     const shouldManage = await promptManagePkp(pkpInfo);

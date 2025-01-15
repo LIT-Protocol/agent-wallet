@@ -27,6 +27,9 @@ import {
   handleBatchRemoveDelegatee,
   handleMintPkp,
   handleTransferOwnership,
+  handleViewWrappedKeys,
+  handleMintWrappedKey,
+  handleRemoveWrappedKey,
 } from '../handlers/admin';
 
 /**
@@ -173,6 +176,15 @@ export class Admin {
       case 'transferOwnership':
         await handleTransferOwnership(admin.awAdmin, pkp);
         await Admin.showManageOrMintMenu(admin);
+        break;
+      case 'viewWrappedKeys':
+        await handleViewWrappedKeys(admin.awAdmin);
+        break;
+      case 'mintWrappedKey':
+        await handleMintWrappedKey(admin.awAdmin);
+        break;
+      case 'removeWrappedKey':
+        await handleRemoveWrappedKey(admin.awAdmin);
         break;
       default:
         logger.error('Invalid option selected');
