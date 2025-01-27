@@ -6,9 +6,9 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "emitDeclarationOnly": false,
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "types": ["node"]
+    "types": ["node"],
+    "moduleResolution": "node",
+    "module": "esnext",
   },
   "include": ["src/**/*.ts"],
   "references": [
