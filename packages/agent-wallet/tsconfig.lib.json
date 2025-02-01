@@ -6,7 +6,7 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "emitDeclarationOnly": false,
-    "module": "commonjs",
+    "module": "esnext",
     "moduleResolution": "node",
     "types": ["node"],
     "paths": {
