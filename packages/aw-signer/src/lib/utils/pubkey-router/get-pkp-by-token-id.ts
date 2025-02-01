@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 
-export const getPkpEthAddressByTokenId = async(
+export const getTokenIdByPkpEthAddress = async(
   pubkeyRouterContract: ethers.Contract,
   tokenId: string
 ) => {

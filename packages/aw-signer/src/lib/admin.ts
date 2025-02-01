@@ -21,6 +21,7 @@ import {
 import { LocalStorage } from './utils/storage';
 import { AwSignerError, AwSignerErrorType } from './errors';
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 type AdminStorageLayout = {
   [ethAddress: string]: {
@@ -32,6 +33,9 @@ type AdminStorageLayout = {
 =======
 import { getPkpEthAddressByTokenId } from './utils/pubkey-router';
 >>>>>>> acb5096 (feat: pubkey router contract)
+=======
+import { getTokenIdByPkpEthAddress } from './utils/pubkey-router';
+>>>>>>> 8ca8783 (checkpoint)
 /**
  * The `Admin` class is responsible for the ownership of the PKP (Programmable Key Pair),
  * the registration and management of tools, policies, and delegatees.
@@ -238,34 +242,29 @@ export class Admin {
    * Retrieves all PKPs stored in the Admin's (local) storage.
    * @returns An array of PKP metadata.
    */
+<<<<<<< HEAD
   public async getPkps() {
     return Admin.loadPkpsFromStorage(this.storage, this.adminWallet.address);
   }
+=======
+  // public async getPkps() {
+  //   return loadPkpsFromStorage(this.storage);
+  // }
+>>>>>>> 8ca8783 (checkpoint)
 
   /**
-   * Retrieves a PKP by its token ID.
-   * @param tokenId - The token ID of the PKP.
-   * @returns A promise that resolves to the PKP metadata.
+   * Retrieves tokenId by pkpEthAddress
+   * @param pkpEthAddress - The pkpEthAddress of the PKP.
+   * @returns A promise that resolves to the tokenId.
    * @throws If the PKP is not found in storage.
    */
-  public async getPkpByTokenId(tokenId: string) {
-    // const pkps = await this.getPkps();
-    // const pkp = pkps.find((p) => p.info.tokenId === tokenId);
-    // if (!pkp) {
-    //   throw new AwSignerError(
-    //     AwSignerErrorType.ADMIN_PKP_NOT_FOUND,
-    //     `PKP with tokenId ${tokenId} not found in storage`
-    //   );
-    // }
-
-    // return pkp;
-
-    const pkpEthAddress = await getPkpEthAddressByTokenId(
-      this.litContracts.pubkeyRouterContract.write,
-      tokenId
+  public async getTokenIdByPkpEthAddress(pkpEthAddress: string) {
+    const tokenId = await getTokenIdByPkpEthAddress(
+      this.litContracts.pubkeyRouterContract.read,
+      pkpEthAddress
     );
 
-    return pkpEthAddress; 
+    return tokenId;
   }
 
   /**
@@ -274,6 +273,7 @@ export class Admin {
    * @throws If the PKP minting fails.
    */
   public async mintPkp() {
+<<<<<<< HEAD
     const pkps = await this.getPkps();
     const mintMetadata = await Admin.mintPkp(
       this.litContracts,
@@ -281,6 +281,12 @@ export class Admin {
     );
     pkps.push(mintMetadata);
     Admin.savePkpsToStorage(this.storage, this.adminWallet.address, pkps);
+=======
+    // const pkps = await this.getPkps();
+    const mintMetadata = await mintPkp(this.litContracts, this.adminWallet);
+    // pkps.push(mintMetadata);
+    // savePkpsToStorage(this.storage, pkps);s
+>>>>>>> 8ca8783 (checkpoint)
 
     return mintMetadata;
   }
@@ -296,10 +302,9 @@ export class Admin {
       throw new Error('Not properly initialized');
     }
 
-    const pkp = await this.getPkpByTokenId(pkpTokenId);
     const tx = await this.litContracts.pkpNftContract.write[
       'safeTransferFrom(address,address,uint256)'
-    ](this.adminWallet.address, newOwner, pkp.info.tokenId);
+    ](this.adminWallet.address, newOwner, pkpTokenId);
 
     const receipt = await tx.wait();
     if (receipt.status === 0) {
@@ -316,6 +321,20 @@ export class Admin {
     );
 
     return receipt;
+  }
+
+  /**
+   * Retrieves the owner of the PKP
+   * @param pkpTokenId - The pkpTokenId of the PKP.
+   * @returns A promise that resolves to the owner.
+   * @throws If the PKP is not found in storage.
+   */
+  public async getPKPOwner(pkpTokenId: string) {
+    const pkpOwner = await this.litContracts.pkpNftContract.read.ownerOf(
+      pkpTokenId
+    );
+
+    return pkpOwner;
   }
 
   /**
@@ -345,7 +364,7 @@ export class Admin {
     const litContractsTxReceipt = await this.litContracts.addPermittedAction({
       ipfsId: ipfsCid,
       authMethodScopes: signingScopes,
-      pkpTokenId: (await this.getPkpByTokenId(pkpTokenId)).info.tokenId,
+      pkpTokenId: pkpTokenId,
     });
 
     const toolRegistryContractTx =
@@ -374,16 +393,12 @@ export class Admin {
 
     const revokePermittedActionTx =
       await this.litContracts.pkpPermissionsContractUtils.write.revokePermittedAction(
-        (
-          await this.getPkpByTokenId(pkpTokenId)
-        ).info.tokenId,
+        pkpTokenId,
         ipfsCid
       );
 
     const removeToolsTx = await this.toolRegistryContract.removeTools(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
+      pkpTokenId,
       [ipfsCid]
     );
 
@@ -405,12 +420,9 @@ export class Admin {
       throw new Error('Tool policy manager not initialized');
     }
 
-    const tx = await this.toolRegistryContract.enableTools(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
-      [toolIpfsCid]
-    );
+    const tx = await this.toolRegistryContract.enableTools(pkpTokenId, [
+      toolIpfsCid,
+    ]);
 
     return await tx.wait();
   }
@@ -427,12 +439,9 @@ export class Admin {
       throw new Error('Tool policy manager not initialized');
     }
 
-    const tx = await this.toolRegistryContract.disableTools(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
-      [toolIpfsCid]
-    );
+    const tx = await this.toolRegistryContract.disableTools(pkpTokenId, [
+      toolIpfsCid,
+    ]);
 
     return await tx.wait();
   }
@@ -452,12 +461,7 @@ export class Admin {
     }
 
     const [isRegistered, isEnabled] =
-      await this.toolRegistryContract.isToolRegistered(
-        (
-          await this.getPkpByTokenId(pkpTokenId)
-        ).info.tokenId,
-        toolIpfsCid
-      );
+      await this.toolRegistryContract.isToolRegistered(pkpTokenId, toolIpfsCid);
 
     return { isRegistered, isEnabled };
   }
@@ -475,13 +479,29 @@ export class Admin {
     }
 
     const toolInfos = await this.toolRegistryContract.getRegisteredTools(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
+      pkpTokenId,
       [toolIpfsCid]
     );
 
     return toolInfos[0];
+  }
+
+  /**
+   * Get all registered tools for a given PKP.
+   * @param pkpTokenId - The token ID of the PKP.
+   * @returns A promise that resolves to the tool information.
+   * @throws If the tool policy registry contract is not initialized.
+   */
+  public async getAllRegisteredTools(pkpTokenId: string) {
+    if (!this.toolRegistryContract) {
+      throw new Error('Tool policy manager not initialized');
+    }
+
+    const tools = await this.toolRegistryContract.getAllRegisteredTools(
+      pkpTokenId
+    );
+
+    return tools;
   }
 
   /**
@@ -500,9 +520,7 @@ export class Admin {
     const registeredTools = await getRegisteredToolsAndDelegatees(
       this.toolRegistryContract,
       this.litContracts,
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId
+      pkpTokenId
     );
 
     return registeredTools;
@@ -518,11 +536,7 @@ export class Admin {
       throw new Error('Tool policy manager not initialized');
     }
 
-    return await this.toolRegistryContract.getDelegatees(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId
-    );
+    return await this.toolRegistryContract.getDelegatees(pkpTokenId);
   }
 
   /**
@@ -537,9 +551,7 @@ export class Admin {
     }
 
     return await this.toolRegistryContract.isPkpDelegatee(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
+      pkpTokenId,
       ethers.utils.getAddress(delegatee)
     );
   }
@@ -555,12 +567,9 @@ export class Admin {
       throw new Error('Tool policy manager not initialized');
     }
 
-    const tx = await this.toolRegistryContract.addDelegatees(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
-      [delegatee]
-    );
+    const tx = await this.toolRegistryContract.addDelegatees(pkpTokenId, [
+      delegatee,
+    ]);
 
     return await tx.wait();
   }
@@ -577,12 +586,9 @@ export class Admin {
       throw new Error('Tool policy manager not initialized');
     }
 
-    const tx = await this.toolRegistryContract.removeDelegatees(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
-      [delegatee]
-    );
+    const tx = await this.toolRegistryContract.removeDelegatees(pkpTokenId, [
+      delegatee,
+    ]);
 
     return await tx.wait();
   }
@@ -605,9 +611,7 @@ export class Admin {
     }
 
     const result = await this.toolRegistryContract.isToolPermittedForDelegatee(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
+      pkpTokenId,
       toolIpfsCid,
       ethers.utils.getAddress(delegatee)
     );
@@ -634,7 +638,7 @@ export class Admin {
     }
 
     return this.toolRegistryContract.getPermittedToolsForDelegatee(
-      (await this.getPkpByTokenId(pkpTokenId)).info.tokenId,
+      pkpTokenId,
       ethers.utils.getAddress(delegatee)
     );
   }
@@ -657,9 +661,7 @@ export class Admin {
     }
 
     const tx = await this.toolRegistryContract.permitToolsForDelegatees(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
+      pkpTokenId,
       [toolIpfsCid],
       [delegatee]
     );
@@ -685,9 +687,7 @@ export class Admin {
     }
 
     const tx = await this.toolRegistryContract.unpermitToolsForDelegatees(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
+      pkpTokenId,
       [toolIpfsCid],
       [delegatee]
     );
@@ -713,9 +713,7 @@ export class Admin {
     }
 
     const result = await this.toolRegistryContract.getToolPoliciesForDelegatees(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
+      pkpTokenId,
       [ipfsCid],
       [delegatee]
     );
@@ -745,9 +743,7 @@ export class Admin {
     }
 
     const tx = await this.toolRegistryContract.setToolPoliciesForDelegatees(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
+      pkpTokenId,
       [ipfsCid],
       [delegatee],
       [policyIpfsCid],
@@ -775,9 +771,7 @@ export class Admin {
     }
 
     const tx = await this.toolRegistryContract.removeToolPoliciesForDelegatees(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
+      pkpTokenId,
       [ipfsCid],
       [delegatee]
     );
@@ -803,9 +797,7 @@ export class Admin {
     }
 
     const tx = await this.toolRegistryContract.enableToolPoliciesForDelegatees(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
+      pkpTokenId,
       [ipfsCid],
       [delegatee]
     );
@@ -831,9 +823,7 @@ export class Admin {
     }
 
     const tx = await this.toolRegistryContract.disableToolPoliciesForDelegatees(
-      (
-        await this.getPkpByTokenId(pkpTokenId)
-      ).info.tokenId,
+      pkpTokenId,
       [ipfsCid],
       [delegatee]
     );
@@ -885,9 +875,7 @@ export class Admin {
 
     const parameterValues =
       await this.toolRegistryContract.getToolPolicyParameters(
-        (
-          await this.getPkpByTokenId(pkpTokenId)
-        ).info.tokenId,
+        pkpTokenId,
         ipfsCid,
         delegatee,
         parameterNames
@@ -915,9 +903,7 @@ export class Admin {
 
     const parameters =
       await this.toolRegistryContract.getAllToolPolicyParameters(
-        (
-          await this.getPkpByTokenId(pkpTokenId)
-        ).info.tokenId,
+        pkpTokenId,
         ipfsCid,
         delegatee
       );
@@ -948,9 +934,7 @@ export class Admin {
 
     const tx =
       await this.toolRegistryContract.setToolPolicyParametersForDelegatee(
-        (
-          await this.getPkpByTokenId(pkpTokenId)
-        ).info.tokenId,
+        pkpTokenId,
         ipfsCid,
         delegatee,
         parameterNames,
@@ -981,9 +965,7 @@ export class Admin {
 
     const tx =
       await this.toolRegistryContract.removeToolPolicyParametersForDelegatee(
-        (
-          await this.getPkpByTokenId(pkpTokenId)
-        ).info.tokenId,
+        pkpTokenId,
         ipfsCid,
         delegatee,
         parameterNames
