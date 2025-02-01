@@ -20,6 +20,7 @@ import {
 } from './utils/pkp-tool-registry';
 import { LocalStorage } from './utils/storage';
 import { AwSignerError, AwSignerErrorType } from './errors';
+<<<<<<< HEAD
 
 type AdminStorageLayout = {
   [ethAddress: string]: {
@@ -28,6 +29,9 @@ type AdminStorageLayout = {
   };
 };
 
+=======
+import { getPkpEthAddressByTokenId } from './utils/pubkey-router';
+>>>>>>> acb5096 (feat: pubkey router contract)
 /**
  * The `Admin` class is responsible for the ownership of the PKP (Programmable Key Pair),
  * the registration and management of tools, policies, and delegatees.
@@ -245,16 +249,23 @@ export class Admin {
    * @throws If the PKP is not found in storage.
    */
   public async getPkpByTokenId(tokenId: string) {
-    const pkps = await this.getPkps();
-    const pkp = pkps.find((p) => p.info.tokenId === tokenId);
-    if (!pkp) {
-      throw new AwSignerError(
-        AwSignerErrorType.ADMIN_PKP_NOT_FOUND,
-        `PKP with tokenId ${tokenId} not found in storage`
-      );
-    }
+    // const pkps = await this.getPkps();
+    // const pkp = pkps.find((p) => p.info.tokenId === tokenId);
+    // if (!pkp) {
+    //   throw new AwSignerError(
+    //     AwSignerErrorType.ADMIN_PKP_NOT_FOUND,
+    //     `PKP with tokenId ${tokenId} not found in storage`
+    //   );
+    // }
 
-    return pkp;
+    // return pkp;
+
+    const pkpEthAddress = await getPkpEthAddressByTokenId(
+      this.litContracts.pubkeyRouterContract.write,
+      tokenId
+    );
+
+    return pkpEthAddress; 
   }
 
   /**
