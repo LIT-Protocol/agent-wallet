@@ -1,13 +1,3 @@
-import { existsSync } from 'fs';
-import { join } from 'path';
-
-/**
- * Default development CIDs for different environments.
- * @type {Object.<string, NetworkCids>}
- * @property {NetworkCids} datil-dev - CIDs for the development environment.
- * @property {NetworkCids} datil-test - CIDs for the test environment.
- * @property {NetworkCids} datil - CIDs for the production environment.
- */
 const DEFAULT_CIDS = {
   'datil-dev': {
     tool: 'DEV_TOOL_IPFS_CID',
@@ -23,13 +13,9 @@ const DEFAULT_CIDS = {
   },
 } as const;
 
-/**
- * Tries to read the IPFS CIDs from the build output.
- * Falls back to default development CIDs if the file is not found or cannot be read.
- * @type {Record<keyof typeof DEFAULT_CIDS, NetworkCids>}
- */
 let deployedCids = DEFAULT_CIDS;
 
+<<<<<<< HEAD
 const ipfsPath = join(__dirname, '../../../dist/ipfs.json');
 if (existsSync(ipfsPath)) {
   // We know this import will work because we checked the file exists
@@ -40,10 +26,30 @@ if (existsSync(ipfsPath)) {
   throw new Error(
     'Failed to read ipfs.json. You should only see this error if you are running the monorepo locally. You should run pnpm deploy:tools to update the ipfs.json files.'
   );
+=======
+function isNode(): boolean {
+  return typeof process !== 'undefined' && 
+         process.versions != null && 
+         process.versions.node != null;
 }
 
-/**
- * IPFS CIDs for each network's Lit Action.
- * @type {Record<keyof typeof DEFAULT_CIDS, NetworkCids>}
- */
+if (isNode()) {
+  try {
+    const path = require('path');
+    const fs = require('fs');
+    const url = require('url');
+    
+    const __filename = url.fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const ipfsPath = path.join(__dirname, '../../../dist/ipfs.json');
+    
+    if (fs.existsSync(ipfsPath)) {
+      deployedCids = require(ipfsPath);
+    }
+  } catch (error) {
+    console.warn('Failed to load IPFS config, using defaults');
+  }
+>>>>>>> 94e2e1a (fix: browser env errors)
+}
+
 export const IPFS_CIDS = deployedCids;
