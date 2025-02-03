@@ -14,7 +14,6 @@ import {
 import { AuthSig, ExecuteJsResponse, JsonExecutionSdkParams, LIT_NETWORKS_KEYS } from '@lit-protocol/types';
 import { isBrowser, isNode } from '@lit-protocol/misc';
 import { LitContracts } from '@lit-protocol/contracts-sdk';
-import { getTokenIdByPkpEthAddress } from './utils/pubkey-router';
 import { AwSignerErrorType } from './errors';
 import { DelegatedPkpInfo, IntentMatcher, IntentMatcherResponse, PkpInfo, ToolInfoWithDelegateePolicy } from './types';
 import { AwSignerError } from './errors';
@@ -331,10 +330,9 @@ export class PkpToolRegistryContract {
   public async getTokenIdByPkpEthAddress(pkpEthAddress: string) {
     this.checkInitialized();
     console.log('pkpEthAddress', pkpEthAddress);
-    const tokenId = await getTokenIdByPkpEthAddress(
-      this.litContracts.pubkeyRouterContract.read,
-      pkpEthAddress
-    );
+    const contract = this.litContracts.pubkeyRouterContract.read;
+    const tokenId = await contract.ethAddressToPkpId(pkpEthAddress);
+
     console.log('tokenId', tokenId);
     return tokenId;
   }
