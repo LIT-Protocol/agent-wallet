@@ -18,7 +18,7 @@ export const DEFAULT_REGISTRY_CONFIG: Record<string, ToolRegistryConfig> = {
   },
 } as const;
 
-const PKP_TOOL_REGISTRY_ABI = [
+export const PKP_TOOL_REGISTRY_ABI = [
   // Tool Facet Functions
   'function registerTools(uint256 pkpTokenId, string[] calldata toolIpfsCids, bool enabled) external',
   'function removeTools(uint256 pkpTokenId, string[] calldata toolIpfsCids) external',
