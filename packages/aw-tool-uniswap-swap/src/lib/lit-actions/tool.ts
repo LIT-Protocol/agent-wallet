@@ -146,8 +146,8 @@ declare global {
     // Swap Transaction
     const swapGasLimit = await estimateGasLimit(
       provider,
-      UNISWAP_V3_ROUTER,
       pkp.ethAddress,
+      UNISWAP_V3_ROUTER,
       tokenInfo.tokenIn.contract,
       tokenInfo.tokenIn.amount,
       false,

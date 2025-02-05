@@ -1,6 +1,6 @@
-# AW-Tool Uniswap Swap Documentation
+# AW-Tool ERC-20 Transfer Documentation
 
-The `aw-tool-uniswap-swap` folder contains utilities for interacting with Uniswap swaps using Lit Protocol and Ethereum.
+The `aw-tool-erc20-transfer` folder contains utilities for interacting with erc20 transfers using Lit Protocol and Ethereum.
 
 ---
 
