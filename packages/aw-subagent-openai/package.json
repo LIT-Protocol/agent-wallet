@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "@lit-protocol/aw-tool": "workspace:*",
-    "@lit-protocol/aw-tool-registry": "workspace:*",
+    "@lit-protocol/aw-signer": "workspace:*",
     "openai": "^4.77.0",
     "tslib": "^2.3.0"
   },

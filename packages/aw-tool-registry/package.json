@@ -10,7 +10,6 @@
     "@lit-protocol/aw-tool-erc20-transfer": "workspace:*",
     "@lit-protocol/aw-tool-sign-ecdsa": "workspace:*",
     "@lit-protocol/aw-tool-uniswap-swap": "workspace:*",
-    "ethers": "5.7.2",
     "tslib": "^2.3.0"
   },
   "type": "module",
