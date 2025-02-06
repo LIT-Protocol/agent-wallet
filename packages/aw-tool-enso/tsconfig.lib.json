@@ -11,7 +11,7 @@
     "declarationMap": true,
     "types": ["node"],
     "moduleResolution": "node",
-    "module": "commonjs",
+    "module": "esnext",
     "paths": {
       "@lit-protocol/aw-tool": ["../aw-tool/src"]
     }

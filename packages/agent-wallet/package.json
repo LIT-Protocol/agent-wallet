@@ -5,25 +5,22 @@
     "access": "public"
   },
   "dependencies": {
-    "@lit-protocol/constants": "7.0.2",
     "@lit-protocol/aw-subagent-openai": "workspace:*",
     "@lit-protocol/aw-signer": "workspace:*",
     "@lit-protocol/aw-tool": "workspace:*",
     "@lit-protocol/aw-tool-registry": "workspace:*",
     "bs58": "^6.0.0",
-    "ethers": "5.7.2",
-    "openai": "^4.77.0",
     "tslib": "^2.3.0"
   },
-  "type": "commonjs",
+  "type": "module",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
   "typings": "./dist/src/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
-      "require": "./dist/src/index.js",
-      "default": "./dist/src/index.js"
+      "import": "./dist/src/index.js",
+      "require": "./dist/src/index.cjs"
     }
   },
   "files": [

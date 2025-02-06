@@ -6,6 +6,8 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "emitDeclarationOnly": false,
+    "module": "esnext",
+    "moduleResolution": "node",
     "types": ["node"]
   },
   "include": ["src/**/*.ts"],

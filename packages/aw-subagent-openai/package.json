@@ -6,16 +6,23 @@
   },
   "dependencies": {
     "@lit-protocol/aw-tool": "workspace:*",
-    "@lit-protocol/aw-tool-registry": "workspace:*",
+    "@lit-protocol/aw-signer": "workspace:*",
     "openai": "^4.77.0",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
     "@lit-protocol/aw-signer": "workspace:*"
   },
-  "type": "commonjs",
+  "type": "module",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "files": [
     "dist",
     "!**/*.tsbuildinfo"

@@ -1,9 +1,13 @@
-const fs = require('fs');
-const path = require('path');
-const fetch = require('node-fetch');
-const FormData = require('form-data');
-const networks = require('../config/networks');
-const dotenvx = require('@dotenvx/dotenvx');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fetch from 'node-fetch';
+import FormData from 'form-data';
+import networks from '../config/networks.js';
+import dotenvx from '@dotenvx/dotenvx';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables
 dotenvx.config({ path: path.join(__dirname, '../../../../.env') });

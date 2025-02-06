@@ -5,13 +5,22 @@
     "access": "public"
   },
   "dependencies": {
-    "@lit-protocol/constants": "7.0.2",
     "tslib": "^2.3.0",
     "zod": "^3.24.1"
   },
-  "type": "commonjs",
-  "main": "./dist/index.js",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "typings": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    }
+  },
   "files": [
     "dist",
     "!**/*.tsbuildinfo"

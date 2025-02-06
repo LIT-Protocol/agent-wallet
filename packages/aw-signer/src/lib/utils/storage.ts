@@ -1,10 +1,29 @@
+/// <reference lib="dom" />
 import { LocalStorage as NodeLocalStorage } from 'node-localstorage';
 
-export class LocalStorage {
-  private storage: NodeLocalStorage;
+interface StorageInterface {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+  clear(): void;
+}
+
+function isNode(): boolean {
+  return typeof process !== 'undefined' && 
+         process.versions != null && 
+         process.versions.node != null;
+}
+
+export class LocalStorage implements StorageInterface {
+  private storage: StorageInterface;
 
   constructor(storageFilePath: string) {
-    this.storage = new NodeLocalStorage(storageFilePath);
+    if (isNode()) {
+      this.storage = new NodeLocalStorage(storageFilePath);
+    } else {
+      // Use browser's localStorage
+      this.storage = typeof window !== 'undefined' ? window.localStorage : {} as StorageInterface;
+    }
   }
 
   getItem(key: string): string | null {

@@ -1,7 +1,7 @@
 /**
  * Network configurations for building and deploying Lit Actions
  */
-module.exports = {
+export default {
   'datil-dev': {
     pkpToolRegistryAddress: '0x2707eabb60D262024F8738455811a338B0ECd3EC',
     litNetwork: 'datil-dev',
