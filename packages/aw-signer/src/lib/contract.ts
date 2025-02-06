@@ -63,6 +63,7 @@ export class PkpToolRegistryContract {
     this.options = args?.options;
     this.provider = args?.provider;
     this.toolRegistryContract = {} as any;
+    this.debug = args?.debug || false;
   }
 
   log = (...args: any) => {
@@ -329,11 +330,11 @@ export class PkpToolRegistryContract {
    */
   public async getTokenIdByPkpEthAddress(pkpEthAddress: string) {
     this.checkInitialized();
-    console.log('pkpEthAddress', pkpEthAddress);
+    this.log('pkpEthAddress', pkpEthAddress);
     const contract = this.litContracts.pubkeyRouterContract.read;
     const tokenId = await contract.ethAddressToPkpId(pkpEthAddress);
 
-    console.log('tokenId', tokenId);
+    this.log('tokenId', tokenId);
     return tokenId;
   }
 
