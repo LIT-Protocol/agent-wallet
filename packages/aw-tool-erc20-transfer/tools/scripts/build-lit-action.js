@@ -1,6 +1,10 @@
-const esbuild = require('esbuild');
-const path = require('path');
-const networks = require('../config/networks');
+import esbuild from 'esbuild';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import networks from '../config/networks.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function buildFile(entryPoint, outfile, network, config) {
   try {
@@ -60,4 +64,7 @@ Promise.all([
   buildAction('datil-dev'),
   buildAction('datil-test'),
   buildAction('datil'),
-]).catch(() => process.exit(1));
+]).catch((error) => {
+  console.error('Build failed:', error);
+  process.exit(1);
+});

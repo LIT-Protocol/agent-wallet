@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      form-data:
+        specifier: ^4.0.0
+        version: 4.0.1
     devDependencies:
       '@eslint/js':
         specifier: ^9.8.0
@@ -332,28 +336,30 @@ importers:
 
   packages/aw-tool-uniswap-swap:
     dependencies:
+      '@dotenvx/dotenvx':
+        specifier: ^1.31.3
+        version: 1.34.0
       '@lit-protocol/aw-tool':
         specifier: workspace:*
         version: link:../aw-tool
+      esbuild:
+        specifier: ^0.19.11
+        version: 0.19.12
       ethers:
         specifier: ^5.7.2
         version: 5.7.2
+      form-data:
+        specifier: ^4.0.0
+        version: 4.0.1
+      node-fetch:
+        specifier: ^2.7.0
+        version: 2.7.0
       tslib:
         specifier: ^2.8.1
         version: 2.8.1
       zod:
         specifier: ^3.24.1
         version: 3.24.1
-    devDependencies:
-      '@dotenvx/dotenvx':
-        specifier: ^1.31.3
-        version: 1.34.0
-      esbuild:
-        specifier: ^0.19.11
-        version: 0.19.12
-      node-fetch:
-        specifier: ^2.7.0
-        version: 2.7.0
 
   packages/law-cli:
     dependencies:
