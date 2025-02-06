@@ -2,6 +2,7 @@ import type { AwTool } from '@lit-protocol/aw-tool';
 import { ERC20Transfer } from '@lit-protocol/aw-tool-erc20-transfer';
 import { UniswapSwap } from '@lit-protocol/aw-tool-uniswap-swap';
 import { SignEcdsa } from '@lit-protocol/aw-tool-sign-ecdsa';
+import { Enso } from '@lit-protocol/aw-tool-enso';
 
 /**
  * Represents the Lit network environment.
@@ -122,3 +123,4 @@ export function listAllTools<T extends AwTool<any, any>>(): Array<{
 registerTool('ERC20Transfer', ERC20Transfer);
 registerTool('UniswapSwap', UniswapSwap);
 registerTool('SignEcdsa', SignEcdsa);
+registerTool('Enso', Enso);

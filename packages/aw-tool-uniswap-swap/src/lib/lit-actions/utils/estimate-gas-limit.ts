@@ -48,7 +48,7 @@ export const estimateGasLimit = async (
           pkpEthAddress,
           amount,
           swapParams.amountOutMin,
-          0,
+          0
         ],
         { from: pkpEthAddress }
       );
@@ -56,15 +56,13 @@ export const estimateGasLimit = async (
       throw new Error('Missing swap parameters for gas estimation');
     }
 
-    // Add 20% buffer
     const gasLimit = estimatedGas.mul(120).div(100);
     console.log(`Estimated gas limit: ${gasLimit.toString()}`);
     return gasLimit;
   } catch (error) {
     console.error('Error estimating gas:', error);
-    // Use fallback gas limits
-    const fallbackGas = isApproval ? '300000' : '500000';
-    console.log(`Using fallback gas limit: ${fallbackGas}`);
+    const fallbackGas = isApproval ? '100000' : '300000';
+    console.log(`Failed to estimate gas. Using fallback gas limit: ${fallbackGas}`);
     return ethers.BigNumber.from(fallbackGas);
   }
 };

@@ -1,10 +1,11 @@
 {
-  "name": "@lit-protocol/aw-tool-sign-ecdsa",
+  "name": "@lit-protocol/aw-tool-enso",
   "version": "0.1.0-19",
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
+    "@ensofinance/sdk": "^1.0.10",
     "@lit-protocol/aw-tool": "workspace:*",
     "ethers": "^5.7.2",
     "tslib": "^2.8.1",
@@ -15,23 +16,16 @@
     "esbuild": "^0.19.11",
     "node-fetch": "^2.7.0"
   },
-  "type": "module",
+  "type": "commonjs",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
   "typings": "./dist/src/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/src/index.d.ts",
-      "import": "./dist/src/index.js",
-      "require": "./dist/src/index.cjs"
-    }
-  },
   "files": [
     "dist",
     "!**/*.tsbuildinfo"
   ],
   "nx": {
-    "sourceRoot": "packages/aw-tool-sign-ecdsa/src",
+    "sourceRoot": "packages/aw-tool-enso/src",
     "projectType": "library",
     "targets": {
       "build": {
@@ -40,11 +34,11 @@
           "{options.outputPath}"
         ],
         "options": {
-          "outputPath": "packages/aw-tool-sign-ecdsa/dist",
-          "main": "packages/aw-tool-sign-ecdsa/src/index.ts",
-          "tsConfig": "packages/aw-tool-sign-ecdsa/tsconfig.lib.json",
+          "outputPath": "packages/aw-tool-enso/dist",
+          "main": "packages/aw-tool-enso/src/index.ts",
+          "tsConfig": "packages/aw-tool-enso/tsconfig.lib.json",
           "assets": [
-            "packages/aw-tool-sign-ecdsa/*.md"
+            "packages/aw-tool-enso/*.md"
           ]
         }
       },
@@ -57,11 +51,11 @@
           "commands": [
             "node tools/scripts/build-lit-action.js"
           ],
-          "cwd": "packages/aw-tool-sign-ecdsa",
+          "cwd": "packages/aw-tool-enso",
           "parallel": false
         },
         "outputs": [
-          "{workspaceRoot}/packages/aw-tool-sign-ecdsa/dist/deployed-lit-action.js"
+          "{workspaceRoot}/packages/aw-tool-enso/dist/deployed-lit-action.js"
         ]
       },
       "deploy": {
@@ -73,7 +67,7 @@
           "commands": [
             "node tools/scripts/deploy-lit-action.js"
           ],
-          "cwd": "packages/aw-tool-sign-ecdsa"
+          "cwd": "packages/aw-tool-enso"
         }
       },
       "publish": {
@@ -86,6 +80,6 @@
         }
       }
     },
-    "name": "aw-tool-sign-ecdsa"
+    "name": "aw-tool-enso"
   }
 }

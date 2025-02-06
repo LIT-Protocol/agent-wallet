@@ -4,18 +4,6 @@
   "include": [],
   "references": [
     {
-      "path": "../aw-tool-uniswap-swap"
-    },
-    {
-      "path": "../aw-tool-sign-ecdsa"
-    },
-    {
-      "path": "../aw-tool-erc20-transfer"
-    },
-    {
-      "path": "../aw-tool-enso"
-    },
-    {
       "path": "../aw-tool"
     },
     {

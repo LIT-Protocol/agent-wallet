@@ -1,6 +1,6 @@
 {
   "name": "@lit-protocol/aw-signer",
-  "version": "0.1.0-17",
+  "version": "0.1.0-19",
   "publishConfig": {
     "access": "public"
   },

@@ -32,6 +32,9 @@
     },
     {
       "path": "./packages/aw-tool-registry"
+    },
+    {
+      "path": "./packages/aw-tool-enso"
     }
   ]
 }

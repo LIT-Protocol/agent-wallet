@@ -4,24 +4,23 @@ import {
   getPkpToolRegistryContract,
   NETWORK_CONFIG,
 } from '@lit-protocol/aw-tool';
-
-import {
-  getUniswapQuoterRouter,
-  getTokenInfo,
-  getBestQuote,
-  getGasData,
-  estimateGasLimit,
-  createTransaction,
-  signTx,
-  broadcastTransaction,
-} from './utils';
+import { ENSO_API_KEY, ENSO_ETH, ENSO_SUPPORTED_CHAINS } from '../../constants';
+import { getToken } from './utils/get-token';
+import { EnsoClient } from '@ensofinance/sdk';
+import { parseUnits } from 'ethers/lib/utils';
+import { getRoute } from './utils/get-route';
+import { createApproveTx } from './utils/approve';
+import { signTx } from './utils/sign-tx';
+import { broadcastTransaction } from './utils/broadcast-tx';
+import { getGasData } from './utils/get-gas-data';
+import { createRouteTx } from './utils/create-route-tx';
 
 declare global {
   // Required Inputs
   const params: {
     pkpEthAddress: string;
-    rpcUrl: string;
     chainId: string;
+    rpcUrl: string;
     tokenIn: string;
     tokenOut: string;
     amountIn: string;
@@ -40,32 +39,32 @@ declare global {
           .pubkeyRouterAddress
       }`
     );
-
-    const { UNISWAP_V3_QUOTER, UNISWAP_V3_ROUTER } = getUniswapQuoterRouter(
-      params.chainId
-    );
+    if (!ENSO_SUPPORTED_CHAINS.has(Number(params.chainId))) {
+      throw new Error(`ChainId ${params.chainId} is not supported by Enso`);
+    }
 
     const delegateeAddress = ethers.utils.getAddress(LitAuth.authSigAddress);
     const toolIpfsCid = LitAuth.actionIpfsIds[0];
+    const ensoClient = new EnsoClient({ apiKey: ENSO_API_KEY });
+    const chainId = Number(params.chainId);
     const provider = new ethers.providers.JsonRpcProvider(params.rpcUrl);
+
     const pkpToolRegistryContract = await getPkpToolRegistryContract(
       PKP_TOOL_REGISTRY_ADDRESS
     );
     const pkp = await getPkpInfo(params.pkpEthAddress);
-    const tokenInfo = await getTokenInfo(
-      provider,
-      params.tokenIn,
-      params.amountIn,
-      params.tokenOut,
-      pkp
-    );
-
     const toolPolicy = await fetchToolPolicyFromRegistry(
       pkpToolRegistryContract,
       pkp.tokenId,
       delegateeAddress,
       toolIpfsCid
     );
+
+    const tokenInData = await getToken(ensoClient, chainId, params.tokenIn);
+    const amountInWei = parseUnits(
+      params.amountIn,
+      tokenInData.decimals
+    ).toString();
 
     if (
       toolPolicy.enabled &&
@@ -74,7 +73,6 @@ declare global {
       toolPolicy.policyIpfsCid !== ''
     ) {
       console.log(`Executing policy ${toolPolicy.policyIpfsCid}`);
-
       await Lit.Actions.call({
         ipfsId: toolPolicy.policyIpfsCid,
         params: {
@@ -83,7 +81,7 @@ declare global {
           pkpTokenId: pkp.tokenId,
           delegateeAddress,
           toolParameters: {
-            amountIn: tokenInfo.tokenIn.amount.toString(),
+            amountIn: amountInWei,
             tokenIn: params.tokenIn,
             tokenOut: params.tokenOut,
           },
@@ -95,84 +93,62 @@ declare global {
       );
     }
 
-    // Get best quote and calculate minimum output
-    const { bestFee, amountOutMin } = await getBestQuote(
-      provider,
-      UNISWAP_V3_QUOTER,
-      tokenInfo.tokenIn.amount,
-      tokenInfo.tokenOut.decimals
-    );
-
-    // Get gas data for transactions
-    const gasData = await getGasData(provider, pkp.ethAddress);
-
-    // Approval Transaction
-    const approvalGasLimit = await estimateGasLimit(
-      provider,
+    // Add your tool execution logic here
+    const routeData = await getRoute(
+      ensoClient,
+      chainId,
       pkp.ethAddress,
-      UNISWAP_V3_ROUTER,
-      tokenInfo.tokenIn.contract,
-      tokenInfo.tokenIn.amount,
-      true
+      params.tokenIn,
+      amountInWei,
+      params.tokenOut
     );
 
-    const approvalTx = await createTransaction(
-      UNISWAP_V3_ROUTER,
-      pkp.ethAddress,
-      approvalGasLimit,
-      tokenInfo.tokenIn.amount,
-      gasData,
-      true
-    );
+    if (params.tokenIn.toLowerCase() !== ENSO_ETH) {
+      const gasData = await getGasData(provider, pkp.ethAddress);
 
-    const signedApprovalTx = await signTx(
-      pkp.publicKey,
-      approvalTx,
-      'erc20ApprovalSig'
-    );
-    const approvalHash = await broadcastTransaction(provider, signedApprovalTx);
-    console.log('Approval transaction hash:', approvalHash);
+      const approveTx = await createApproveTx(
+        ensoClient,
+        chainId,
+        gasData,
+        pkp.ethAddress,
+        tokenInData.address,
+        amountInWei
+      );
 
-    // Wait for approval confirmation
-    console.log('Waiting for approval confirmation...');
-    const approvalConfirmation = await provider.waitForTransaction(
-      approvalHash,
-      1
-    );
-    if (approvalConfirmation.status === 0) {
-      throw new Error('Approval transaction failed');
+      const signedApprovalTx = await signTx(
+        pkp.publicKey,
+        approveTx,
+        'erc20ApprovalSig'
+      );
+
+      const approvalHash = await broadcastTransaction(
+        provider,
+        signedApprovalTx
+      );
+      console.log('Approval transaction hash:', approvalHash);
+
+      // Wait for approval confirmation
+      console.log('Waiting for approval confirmation...');
+      const approvalConfirmation = await provider.waitForTransaction(
+        approvalHash,
+        1
+      );
+
+      if (approvalConfirmation.status === 0) {
+        throw new Error('Approval transaction failed');
+      }
     }
 
-    // Swap Transaction
-    const swapGasLimit = await estimateGasLimit(
-      provider,
-      pkp.ethAddress,
-      UNISWAP_V3_ROUTER,
-      tokenInfo.tokenIn.contract,
-      tokenInfo.tokenIn.amount,
-      false,
-      { fee: bestFee, amountOutMin }
-    );
-
-    const swapTx = await createTransaction(
-      UNISWAP_V3_ROUTER,
-      pkp.ethAddress,
-      swapGasLimit,
-      tokenInfo.tokenIn.amount,
-      { ...gasData, nonce: gasData.nonce + 1 },
-      false,
-      { fee: bestFee, amountOutMin }
-    );
-
-    const signedSwapTx = await signTx(pkp.publicKey, swapTx, 'erc20SwapSig');
-    const swapHash = await broadcastTransaction(provider, signedSwapTx);
-    console.log('Swap transaction hash:', swapHash);
+    const gasData = await getGasData(provider, pkp.ethAddress);
+    const routeTx = await createRouteTx(routeData, gasData, chainId);
+    const signedRouteTx = await signTx(pkp.publicKey, routeTx, 'erc20RouteSig');
+    const routeHash = await broadcastTransaction(provider, signedRouteTx);
+    console.log('Route transaction hash', routeHash);
 
     Lit.Actions.setResponse({
       response: JSON.stringify({
+        routeHash,
         status: 'success',
-        approvalHash,
-        swapHash,
       }),
     });
   } catch (err: any) {

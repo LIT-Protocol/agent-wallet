@@ -7,7 +7,7 @@
     "clean": "node tools/clean.js",
     "lint": "npx nx run-many -t lint",
     "test": "npx nx run-many -t test -- --passWithNoTests",
-    "deploy:tools": "npx nx deploy aw-tool-uniswap-swap && npx nx deploy aw-tool-sign-ecdsa && npx nx deploy aw-tool-erc20-transfer",
+    "deploy:tools": "npx nx deploy aw-tool-uniswap-swap && npx nx deploy aw-tool-sign-ecdsa && npx nx deploy aw-tool-erc20-transfer && npx nx deploy aw-tool-enso",
     "start:cli": "pnpm build && pnpm deploy:tools && NO_DEPRECATION=* node packages/law-cli/dist/src/index.js",
     "start:cli:no-build": "NO_DEPRECATION=* node packages/law-cli/dist/src/index.js",
     "docs": "npx typedoc --options typedoc.json",
