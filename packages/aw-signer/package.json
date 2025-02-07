@@ -17,6 +17,8 @@
     "@lit-protocol/constants": "7.0.2",
     "@lit-protocol/contracts-sdk": "7.0.2",
     "@lit-protocol/lit-node-client-nodejs": "7.0.2",
+    "@lit-protocol/logger": "^7.0.6",
+    "@lit-protocol/misc": "^7.0.6",
     "@lit-protocol/types": "7.0.2",
     "bs58": "^6.0.0",
     "ethers": "5.7.2",
