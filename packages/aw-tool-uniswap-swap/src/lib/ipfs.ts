@@ -1,12 +1,15 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
 
+// Type definitions
+type NetworkCids = {
+  tool: string;
+  defaultPolicy: string;
+};
+
 /**
  * Default development CIDs for different environments.
  * @type {Object.<string, NetworkCids>}
- * @property {NetworkCids} datil-dev - CIDs for the development environment.
- * @property {NetworkCids} datil-test - CIDs for the test environment.
- * @property {NetworkCids} datil - CIDs for the production environment.
  */
 const DEFAULT_CIDS = {
   'datil-dev': {
@@ -24,26 +27,29 @@ const DEFAULT_CIDS = {
 } as const;
 
 /**
- * Tries to read the IPFS CIDs from the build output.
- * Falls back to default development CIDs if the file is not found or cannot be read.
- * @type {Record<keyof typeof DEFAULT_CIDS, NetworkCids>}
- */
-let deployedCids = DEFAULT_CIDS;
-
-const ipfsPath = join(__dirname, '../../../dist/ipfs.json');
-if (existsSync(ipfsPath)) {
-  // We know this import will work because we checked the file exists
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const ipfsJson = require(ipfsPath);
-  deployedCids = ipfsJson;
-} else {
-  throw new Error(
-    'Failed to read ipfs.json. You should only see this error if you are running the monorepo locally. You should run pnpm deploy:tools to update the ipfs.json files.'
-  );
-}
-
-/**
  * IPFS CIDs for each network's Lit Action.
  * @type {Record<keyof typeof DEFAULT_CIDS, NetworkCids>}
  */
-export const IPFS_CIDS = deployedCids;
+export const IPFS_CIDS: Record<keyof typeof DEFAULT_CIDS, NetworkCids> = 
+  // Check if we're in a Node.js environment
+  typeof process !== 'undefined' && 
+  process.versions && 
+  process.versions.node ? 
+    (() => {
+      let deployedCids = DEFAULT_CIDS;
+      const ipfsPath = join(__dirname, '../../../dist/ipfs.json');
+      
+      if (existsSync(ipfsPath)) {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const ipfsJson = require(ipfsPath);
+        deployedCids = ipfsJson;
+      } else {
+        throw new Error(
+          'Failed to read ipfs.json. You should only see this error if you are running the monorepo locally. You should run pnpm deploy:tools to update the ipfs.json files.'
+        );
+      }
+      
+      return deployedCids;
+    })() 
+    : // Browser environment
+    DEFAULT_CIDS as Record<keyof typeof DEFAULT_CIDS, NetworkCids>;

@@ -16,11 +16,20 @@ import { parseToolParametersFromIntent } from './parse-tool-parameters';
  * and parsing the required parameters for the matched tool.
  */
 export class OpenAiIntentMatcher implements IntentMatcher {
+  private static MATCHER_NAME = 'OpenAI Intent Matcher';
+  private static REQUIRED_CREDENTIALS = ['openAiApiKey'] as const;
+
   /** The name of the intent matcher. */
-  public static readonly name = 'OpenAI Intent Matcher';
+  // eslint-disable-next-line
+  // @ts-ignore
+  public static get name() {
+    return OpenAiIntentMatcher.MATCHER_NAME;
+  }
 
   /** The required credential names for this intent matcher. */
-  public static readonly requiredCredentialNames = ['openAiApiKey'] as const;
+  public static get requiredCredentialNames() {
+    return OpenAiIntentMatcher.REQUIRED_CREDENTIALS;
+  }
 
   /** The OpenAI client instance. */
   private openai: OpenAI;
@@ -30,7 +39,7 @@ export class OpenAiIntentMatcher implements IntentMatcher {
 
   /**
    * Constructs an instance of the `OpenAiIntentMatcher`.
-   * 
+   *
    * @param {string} apiKey - The API key for the OpenAI client.
    * @param {string} [model='gpt-4o-mini'] - The model to be used for intent analysis. Defaults to 'gpt-4o-mini'.
    */
@@ -42,7 +51,7 @@ export class OpenAiIntentMatcher implements IntentMatcher {
   /**
    * Analyzes the provided intent and matches it to a registered tool.
    * If a tool is matched, it also parses the required parameters from the intent.
-   * 
+   *
    * @param {string} intent - The intent to be analyzed.
    * @param {AwTool<any, any>[]} registeredTools - An array of registered tools to match against the intent.
    * @returns {Promise<IntentMatcherResponse<any>>} - A promise that resolves to an object containing the analysis, matched tool, and parameters.
