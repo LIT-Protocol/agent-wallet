@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.31.3",
-    "esbuild": "^0.19.11",
+    "esbuild": "^0.25.0",
     "node-fetch": "^2.7.0",
     "@solana/web3.js": "^1.98.0",
     "tweetnacl": "^1.0.3"
