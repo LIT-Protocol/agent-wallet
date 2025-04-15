@@ -11,7 +11,7 @@ We love your input! We want to make contributing to Lit Full Self Signing as eas
 ## We Develop with Github
 We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
 
-## We Use [Github Flow](https://guides.github.com/introduction/flow/index.html)
+## We Use [Github Flow](https://docs.github.com)
 Pull requests are the best way to propose changes to the codebase. We actively welcome your pull requests:
 
 1. Fork the repo and create your branch from `main`.
