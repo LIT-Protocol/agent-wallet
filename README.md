@@ -1,3 +1,11 @@
+# Deprecation Notice
+
+**This Lit Agent Wallet project has been deprecated in favor of our new architecture: [Vincent](https://github.com/LIT-Protocol/Vincent).**
+
+To learn more, check out the [Vincent documentation](https://docs.heyvincent.ai/) and explore our [Vincent App demo](https://demo.heyvincent.ai/), which showcases how users can delegate usage of their Agent Wallet to a Vincent App to perform transactions on their behalf—without exposing their private key.
+
+If you’d like to discuss how to empower your users with delegated access while maintaining private key security, feel free to reach out to us on [Telegram](https://t.me/+aa73FAF9Vp82ZjJh).
+
 # Lit Agent Wallet
 
 Welcome to the **L**it **A**gent **W**allet (LAW) project! This repository provides a secure and trustless solution for managing AI Agent wallets using the Lit SDK. The framework ensures that Agent owners retain full control over their funds, preventing tampering by Agent developers.
